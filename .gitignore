@@ -10,3 +10,4 @@ node_modules
 .output
 env.ts
 /firebase.ts
+__forLater

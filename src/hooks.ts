@@ -58,11 +58,6 @@ export const handle: Handle = async ({ event, resolve }) => {
 	// 	event.request.headers.append('status', '302');
 	// 	return await resolve(event);
 	// }
-	let req = request;
-	let useragent = req.headers.get('user-agent');
-	if (!useragent) {
-		return new Response('Bad', { status: 400 });
-	}
 	const response = await resolve(event);
 
 	return response;

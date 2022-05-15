@@ -1,15 +1,15 @@
 <script lang="ts">
 	import Prism from 'prismjs';
-	import 'prismjs/components';
+	import 'prismjs/components.js';
 	import 'prismjs/themes/prism-okaidia.css';
 	import 'prismjs/plugins/autolinker/prism-autolinker.css';
 	import 'prismjs/plugins/inline-color/prism-inline-color.css';
 	import 'prismjs/plugins/line-numbers/prism-line-numbers.css';
-	import 'prismjs/plugins/line-numbers/prism-line-numbers';
-	import 'prismjs/plugins/autolinker/prism-autolinker';
-	import 'prismjs/plugins/inline-color/prism-inline-color';
-	import 'prismjs/plugins/normalize-whitespace/prism-normalize-whitespace';
-	import 'prismjs/plugins/autoloader/prism-autoloader';
+	import 'prismjs/plugins/line-numbers/prism-line-numbers.js';
+	import 'prismjs/plugins/autolinker/prism-autolinker.js';
+	import 'prismjs/plugins/inline-color/prism-inline-color.js';
+	import 'prismjs/plugins/normalize-whitespace/prism-normalize-whitespace.js';
+	import 'prismjs/plugins/autoloader/prism-autoloader.js';
 
 	import { LoaderIcon } from 'svelte-feather-icons';
 	import { browser } from '$app/env';

@@ -11,7 +11,6 @@ function hashWithSolt(what: string) {
 
 export const get: RequestHandler = async ({ params, url, clientAddress, request }) => {
 	let error;
-	console.log(typeof clientAddress, clientAddress);
 	let out;
 	try {
 		out = await getFile(params.id.replace('💣', ''));
@@ -65,50 +64,34 @@ export const get: RequestHandler = async ({ params, url, clientAddress, request 
 		};
 	}
 
-	let ip = hashWithSolt(clientAddress);
-	// safe empty user agents are blocked
-	let userAgent = hashWithSolt(request.headers.get('user-agent') as string);
+	let userAgent = request.headers.get('user-agent') || '';
+	if (userAgent) {
+		let views = 0;
+		let usedUserAgent = false;
+		let ip = hashWithSolt(clientAddress);
+		userAgent = hashWithSolt(userAgent);
 
-	// find how many times ip has viewed file in last 24 hours
-	let views = 0;
-	let usedUserAgent = false;
-	for (let view of doc.views) {
-		if (view.ip === ip && new Date(view.time).getTime() > now - 1000 * 60 * 60 * 24) {
-			views++;
-			if (view.userAgent === userAgent) {
-				usedUserAgent = true;
+		// find how many times ip has viewed file in last 24 hours
+		for (let view of doc.views) {
+			if (view.ip === ip && new Date(view.time).getTime() > now - 1000 * 60 * 60 * 24) {
+				views++;
+				if (view.userAgent === userAgent) {
+					usedUserAgent = true;
+				}
 			}
 		}
-	}
 
-	// result of code below:
-	// 	copilot failed a shame
+		if (views <= maxViewsForSameIp && userAgent && !usedUserAgent) {
+			let view = {
+				ip,
+				time: new Date().toISOString(),
+				userAgent
+			};
 
-	//optimize the trash above
-	// let views = 0;
-	// let usedUserAgent = false;
-	// let viewsRef = ref.collection('views');
-	// let viewsSnap = await viewsRef.where('ip', '==', ip).get();
-	// for (let view of viewsSnap.docs) {
-	// 	let viewData = view.data();
-	// 	if (new Date(viewData.time).getTime() > now - 1000 * 60 * 60 * 24) {
-	// 		views++;
-	// 		if (viewData.userAgent === userAgent) {
-	// 			usedUserAgent = true;
-	// 		}
-	// 	}
-	// }
-
-	if (views <= maxViewsForSameIp && !usedUserAgent) {
-		let view = {
-			ip,
-			time: new Date().toISOString(),
-			userAgent
-		};
-
-		await ref.update({
-			views: admin.firestore.FieldValue.arrayUnion(view)
-		});
+			await ref.update({
+				views: admin.firestore.FieldValue.arrayUnion(view)
+			});
+		}
 	}
 
 	let data: ResponseData = {
