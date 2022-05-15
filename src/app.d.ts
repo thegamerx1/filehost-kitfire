@@ -5,6 +5,8 @@
 declare namespace App {
 	interface Locals {
 		userid: string;
+		decodedToken: DecodedIdToken | null;
+		isFuckingGod: boolean | null;
 	}
 
 	interface Platform {}
@@ -22,6 +24,8 @@ declare namespace App {
 			appId: string;
 			measurementId: string;
 		};
+		dark: boolean;
+		isFuckingGod: boolean;
 	}
 
 	interface Stuff {}

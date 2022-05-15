@@ -1,5 +1,5 @@
 import sharp from 'sharp';
-import { SECRET, EPOCH } from '../../../env';
+import { SECRET, MINDESTROY, MAXDESTROY } from '../../../env';
 
 import crypto from 'crypto';
 
@@ -7,8 +7,13 @@ import { v4 } from '@lukeed/uuid/secure';
 import highlight from 'highlight.js';
 import { fileTypeFromBuffer } from 'file-type';
 import utf8validate from 'utf-8-validate';
-import type { DocumentData } from 'firebase/firestore';
+import parse from 'parse-duration';
+('parse-duration');
+import type admin from 'firebase-admin';
+import type { DocumentData, DocumentReference } from 'firebase/firestore';
 import type { Bucket } from '@google-cloud/storage';
+
+import { get as getExpire, set as setExpire } from '$lib/cache/expires';
 
 const unallowedMimes = ['image/webp', 'image/svg+xml', 'image/gif'];
 async function processUpload(file: File, webpify: boolean) {
@@ -65,21 +70,15 @@ async function saveToBucket(bucket: Bucket, buffer: Buffer, mime: string, ext?: 
 		contentType: mime
 	});
 
-	let expires: Date = new Date(Date.now() + 1000 * 60 * 60 * 24 * 365);
-	let whyIsThisAnArray = await bFile.getSignedUrl({
-		action: 'read',
-		expires
-	});
-
+	await bFile.makePublic();
 	return {
-		url: whyIsThisAnArray[0],
-		expires,
+		url: bFile.publicUrl(),
 		fileName: name,
 		tries
 	};
 }
 
-const LENGTH = 8;
+const LENGTH = 6;
 async function generate(col: DocumentData, ext?: string) {
 	let id: string;
 	let tries = 0;
@@ -155,18 +154,6 @@ class ZWS {
 	}
 }
 
-const epoch = {
-	current: () => {
-		return Date.now() - EPOCH;
-	},
-	from: (epoch: number) => {
-		return new Date(epoch + EPOCH);
-	},
-	convert: (time: Date) => {
-		return new Date(time.getTime() - EPOCH).getTime();
-	}
-};
-
 function hasher(data: Buffer) {
 	const hash = crypto.createHmac('sha512', SECRET);
 	hash.update(data);
@@ -186,13 +173,30 @@ function highlightTest(buffer: Buffer) {
 	return highlighted.language;
 }
 
+const MIN_TIME = parse(MINDESTROY, 'ms');
+const MAX_TIME = parse(MAXDESTROY, 'ms');
+function parseDestruct(time: string): Date {
+	let destroy = parse(time, 'ms');
+	if (!destroy) {
+		throw new Error('Invalid time');
+	}
+
+	let date = new Date(destroy + Date.now());
+
+	if (date.getTime() < Date.now() || destroy < MIN_TIME || destroy > MAX_TIME) {
+		throw new Error('Time too short or long');
+	}
+
+	return date;
+}
+
 export {
 	processUpload,
 	ZWS,
-	epoch,
 	hasher,
 	highlightTest,
 	// sizes,
 	generate,
-	saveToBucket
+	saveToBucket,
+	parseDestruct
 };

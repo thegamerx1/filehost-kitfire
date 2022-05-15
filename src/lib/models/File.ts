@@ -10,16 +10,27 @@ const FileSchema = z.object({
 	selfDestruct: z.boolean().default(false),
 	destruct: z.string().nullish().default(null),
 	file: z.object({
-		expires: z.string(),
+		name: z.string(),
 		url: z.string()
 	}),
+	expired: z.boolean().default(false),
 	ip: z.string(),
 	original: z.string().nullish(),
 	bytes: z.number(),
-	bucketFile: z.string(),
 	deleted: z.boolean().default(false),
 	language: z.string().nullish().default(null),
-	views: z.number().default(0),
+	linesofcode: z.number().default(0),
+	uploader: z.string().nullish().default(null),
+	tag: z.string().nullish().default(null),
+	views: z
+		.array(
+			z.object({
+				ip: z.string(),
+				time: z.string(),
+				userAgent: z.string()
+			})
+		)
+		.default([]),
 	tries: z
 		.object({
 			bucket: z.number().nullish().default(null),
@@ -29,19 +40,9 @@ const FileSchema = z.object({
 		.default({ bucket: 0, database: 0 })
 });
 
-const FileView = z.object({
-	iphash: z.string(),
-	userAgent: z.string(),
-	time: z.string()
-});
-
 export const validate = (data: any) => {
 	return FileSchema.parse(data);
-};
-export const validateView = (data: any) => {
-	return FileView.parse(data);
 };
 
 // You can use this elsewhere in your app
 export type File = z.infer<typeof FileSchema>;
-export type View = z.infer<typeof FileView>;

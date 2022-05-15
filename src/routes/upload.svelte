@@ -1,7 +1,3 @@
-<script context="module" lang="ts">
-	export const hydrate = false;
-</script>
-
 <script lang="ts">
 	let files: FileList;
 	let webpify: boolean;

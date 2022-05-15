@@ -7,19 +7,19 @@
 		Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
 	--font-mono: 'Fira Mono', monospace;
 	--pure-white: #ffffff;
-	--primary-color: #b9c6d2;
-	--secondary-color: #d0dde9;
-	--tertiary-color: #edf0f8;
-	--accent-color: #ff3e00;
+	--primary-color: #1e1f21;
+	--secondary-color: #353739;
+	--tertiary-color: #515558;
+	--accent-color: #855bbb;
 	--heading-color: rgba(0, 0, 0, 0.7);
-	--text-color: #444444;
+	--text-color: #f3ebeb;
 	--background-without-opacity: rgba(255, 255, 255, 0.7);
 	--column-width: 42rem;
 	--column-margin-top: 4rem;
 }
 
 body {
-	min-height: 100vh;
+	height: 100vh;
 	margin: 0;
 	background-color: var(--primary-color);
 	background: linear-gradient(
@@ -28,48 +28,42 @@ body {
 		var(--secondary-color) 10.45%,
 		var(--tertiary-color) 41.35%
 	);
-}
-
-body::before {
-	content: '';
-	width: 80vw;
-	height: 100vh;
-	position: absolute;
-	top: 0;
-	left: 10vw;
-	z-index: -1;
-	background: radial-gradient(
-		50% 50% at 50% 50%,
-		var(--pure-white) 0%,
-		rgba(255, 255, 255, 0) 100%
-	);
-	opacity: 0.05;
-}
-
-#svelte {
-	min-height: 100vh;
 	display: flex;
 	flex-direction: column;
 }
 
-h1,
-h2,
-p {
-	font-weight: 400;
-	color: var(--heading-color);
+nav {
+	user-select: none;
+	background: var(--primary-color);
+	color: var(--pure-white);
+	border-color: var(--accent-color)
 }
 
-p {
-	line-height: 1.5;
+nav .item {
+	min-width: 0; min-height: 0;
+	@apply px-2 py-1 rounded-md text-text hover:bg-gray-100 transition-all duration-300 hover:text-gray-900 hover:cursor-pointer flex items-center
 }
+
+nav .item.active {
+	@apply bg-gray-100 text-gray-900
+}
+
+nav .items > div {
+	@apply hover:cursor-default mx-1
+}
+
+nav .items > div span,a {
+	@apply pl-1 mx-2
+}
+
+nav .items > div svg {
+	color: var(--accent-color);
+}
+
 
 a {
 	color: var(--accent-color);
-	text-decoration: none;
-}
-
-a:hover {
-	text-decoration: underline;
+	text-decoration: underline
 }
 
 h1 {
@@ -79,17 +73,6 @@ h1 {
 
 h2 {
 	font-size: 1rem;
-}
-
-pre {
-	font-size: 16px;
-	font-family: var(--font-mono);
-	background-color: rgba(255, 255, 255, 0.45);
-	border-radius: 3px;
-	box-shadow: 2px 2px 6px rgb(255 255 255 / 25%);
-	padding: 0.5em;
-	overflow-x: auto;
-	color: var(--text-color);
 }
 
 input,
@@ -102,9 +85,16 @@ button:focus:not(:focus-visible) {
 	outline: none;
 }
 
-@media (min-width: 720px) {
-	h1 {
-		font-size: 2.4rem;
+
+.spin {
+	animation: spin 2s linear infinite;
+}
+@keyframes spin {
+	0% {
+		transform: rotate(0deg);
+	}
+	100% {
+		transform: rotate(360deg);
 	}
 }
 
