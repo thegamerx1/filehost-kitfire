@@ -5,6 +5,7 @@ const cache = new nodecache();
 import type { Expire } from '$lib/models/Expire';
 
 const CHECK_INTERVAL = 1000 * 60;
+export const expireSetError = new Error('onExpire already set');
 let expireSet = false;
 
 export function get(id: string): Expire | undefined {
@@ -24,7 +25,7 @@ export async function setServer(data: Expire, doc: admin.firestore.DocumentRefer
 }
 
 export function onExpire(callback: (data: Expire) => Promise<boolean>) {
-	if (expireSet) throw new Error('onExpire already set');
+	if (expireSet) throw expireSetError;
 	expireSet = true;
 	setInterval(async () => {
 		let keys = cache.keys();
