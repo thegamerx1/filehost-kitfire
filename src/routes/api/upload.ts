@@ -57,7 +57,7 @@ export const post: RequestHandler = async ({ request, clientAddress }) => {
 			name: result.name,
 			urls: {
 				zws: url + result.zws,
-				normal: url + (result.selfDestruct ? '💣' : '') + result.id,
+				normal: url + result.id,
 				tries: result.tries,
 				delete: url + 'login'
 			}
