@@ -13,7 +13,9 @@ export const get: RequestHandler = async ({ params, url, clientAddress, request 
 	let error;
 	let out;
 	try {
-		out = await getFile(params.id.replace('💣', ''));
+		let id = params.id.replace('💣', '');
+		let id1 = id.match(/(.+?)\.\w+$/);
+		out = await getFile(id1?.[1] || id);
 	} catch (error) {
 		return {
 			status: 500,
