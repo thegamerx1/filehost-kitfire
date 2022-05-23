@@ -1,9 +1,7 @@
 <script lang="ts">
 	import StoreData from '$lib/store/file';
-	import { CopyIcon, FileIcon, CodeIcon, DownloadIcon, EyeIcon } from 'svelte-feather-icons';
-	import { session, page } from '$app/stores';
-	import { modalopen } from './LoginModal.svelte';
-
+	import { FileIcon, CodeIcon, DownloadIcon, EyeIcon } from 'svelte-feather-icons';
+	import { session } from '$app/stores';
 	const ICON_SIZE = '24em';
 	export let smol: boolean = false;
 
@@ -38,23 +36,18 @@
 						</div>
 					{/if} -->
 		{/if}
-		<div class="item hover:cursor-pointer">
-			<DownloadIcon class="inline-block" size={ICON_SIZE} />
-			<a download href={$StoreData.url}>Download</a>
-		</div>
+		<a download href={$StoreData.url} class="p-0 m-0">
+			<div class="item hover:cursor-pointer">
+				<DownloadIcon class="inline-block" size={ICON_SIZE} />
+				<span>Download</span>
+			</div></a
+		>
 	{/if}
 </div>
 {#if $session.isFuckingGod}
 	<a class="item md:ml-auto" href="/dash">Dashboard</a>
 {:else if smol}
 	<a class="item md:ml-auto" href="/login">Login</a>
-{:else}
-	<a
-		class="item md:ml-auto"
-		href="/login"
-		class:active={$page.url.pathname == '/login'}
-		on:click|preventDefault={() => ($modalopen = true)}>Login</a
-	>
 {/if}
 
 <style>

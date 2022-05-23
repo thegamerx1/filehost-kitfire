@@ -45,4 +45,4 @@ export const validate = (data: any) => {
 };
 
 // You can use this elsewhere in your app
-export type File = z.infer<typeof FileSchema>;
+export type FileFire = z.infer<typeof FileSchema>;
