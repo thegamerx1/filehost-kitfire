@@ -107,7 +107,7 @@
 		}
 	}
 
-	const MAX_RUNNING_UPLOADS = 47;
+	const MAX_RUNNING_UPLOADS = 16;
 	async function submit() {
 		if (!success) {
 			return;
