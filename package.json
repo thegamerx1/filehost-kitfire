@@ -1,6 +1,9 @@
 {
-	"name": "my-app",
-	"version": "0.0.1",
+	"name": "filehost-kitfire",
+	"version": "0.0.2",
+	"engines": {
+		"node": ">=16.1.0"
+	},
 	"scripts": {
 		"dev": "svelte-kit dev",
 		"build": "svelte-kit build",
