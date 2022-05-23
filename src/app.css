@@ -48,15 +48,15 @@ nav .item.active {
 	@apply bg-gray-100 text-gray-900
 }
 
-nav .items > div {
+nav .items div.item {
 	@apply hover:cursor-default mx-1
 }
 
-nav .items > div span,a {
+nav .items div.item span,a {
 	@apply pl-1 mx-2
 }
 
-nav .items > div svg {
+nav .items div.item svg {
 	color: var(--accent-color);
 }
 
