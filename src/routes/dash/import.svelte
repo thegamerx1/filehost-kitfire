@@ -107,7 +107,7 @@
 		}
 	}
 
-	const MAX_RUNNING_UPLOADS = 5;
+	const MAX_RUNNING_UPLOADS = 47;
 	async function submit() {
 		if (!success) {
 			return;
@@ -116,16 +116,19 @@
 		success = false;
 		uploading = true;
 		$progress = 0;
+		let threads = 0;
 		let promiseList: Promise<void>[] = [];
 		for (let file of parsedData) {
 			if (uploadsFailed) return;
-			if (promiseList.length > MAX_RUNNING_UPLOADS) {
-				await Promise.any(promiseList);
+			while (threads > MAX_RUNNING_UPLOADS) {
+				promiseList = promiseList.filter((p) => p.then);
+				await new Promise((resolve) => setTimeout(resolve, 100));
 			}
 			let form = new FormData();
 			form.append('file', file.file);
 			form.append('data', JSON.stringify(file.data));
 
+			threads++;
 			promiseList.push(
 				fetch('/api/import', {
 					method: 'POST',
@@ -148,6 +151,9 @@
 						errors.push(`Error uploading ${file.data.name}`);
 						errors.push(getErrorMessage(e));
 						uploadsFailed = true;
+					})
+					.finally(() => {
+						threads = threads - 1;
 					})
 			);
 		}
@@ -175,7 +181,9 @@
 			<progress class="progress progress-primary w-full" value={$progress} max={$progressMax} />
 		{/if}
 		{#if running}
-			<button class="btn btn-square loading w-full" />
+			<div class="flex w-full justify-center">
+				<button class="btn btn-square loading" />
+			</div>
 		{:else if success}
 			<h3 class="text-lg font-bold py-2">Files succesfully parsed</h3>
 			<p class="py-2">
