@@ -46,7 +46,7 @@
 </div>
 {#if $session.isFuckingGod}
 	<a class="item md:ml-auto" href="/dash">Dashboard</a>
-{:else if smol}
+{:else}
 	<a class="item md:ml-auto" href="/login">Login</a>
 {/if}
 
