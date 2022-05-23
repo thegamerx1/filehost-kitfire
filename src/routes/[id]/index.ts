@@ -13,9 +13,19 @@ export const get: RequestHandler = async ({ params, url, clientAddress, request 
 	let error;
 	let out;
 	try {
-		let id = params.id.replace('💣', '');
-		let id1 = id.match(/(.+?)\.\w+$/);
-		out = await getFile(id1?.[1] || id);
+		let id = params.id.match(/^(.+?)(\.\w+)?$/);
+		if (!id) {
+			return {
+				status: 404,
+				body: {
+					data: {
+						error: 'File not found',
+						success: false
+					} as ResponseData
+				}
+			};
+		}
+		out = await getFile(id[1]);
 	} catch (error) {
 		return {
 			status: 500,
@@ -31,9 +41,12 @@ export const get: RequestHandler = async ({ params, url, clientAddress, request 
 	}
 	if (!out || !out.doc) {
 		return {
-			status: 404,
+			status: 200,
 			body: {
-				error
+				data: {
+					error: 'File not found',
+					success: false
+				} as ResponseData
 			}
 		};
 	}
@@ -59,9 +72,11 @@ export const get: RequestHandler = async ({ params, url, clientAddress, request 
 
 	if (expired) {
 		return {
-			status: 410,
 			body: {
-				error: 'File expired'
+				data: {
+					error: 'File expired',
+					success: false
+				} as ResponseData
 			}
 		};
 	}
@@ -112,6 +127,6 @@ export const get: RequestHandler = async ({ params, url, clientAddress, request 
 	};
 
 	return {
-		body: { data: data }
+		body: { data }
 	};
 };
