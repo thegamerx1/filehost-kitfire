@@ -67,10 +67,14 @@ async function saveToBucket(bucket: Bucket, buffer: Buffer, mime: string, ext?: 
 
 	const bFile = bucket.file(name);
 	await bFile.save(buffer, {
-		contentType: mime
+		contentType: mime,
+		public: true,
+		metadata: {
+			'Cache-Control': 'public, max-age=3600',
+			'Content-Disposition': 'attachment'
+		}
 	});
 
-	await bFile.makePublic();
 	return {
 		url: bFile.publicUrl(),
 		fileName: name,

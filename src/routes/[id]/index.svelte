@@ -1,6 +1,5 @@
 <script context="module" lang="ts">
 	import type { Load } from '@sveltejs/kit';
-	export const prerender = false;
 
 	export const load: Load = async ({ url, props }) => {
 		if (url.searchParams.has('view') && props.data.success) {

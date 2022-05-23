@@ -1,5 +1,5 @@
 import type { User } from '$lib/models/User';
-import admin from 'firebase-admin';
+import type admin from 'firebase-admin';
 const cache: User[] = [];
 
 export function get(name: string): User | undefined {
