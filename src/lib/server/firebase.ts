@@ -241,6 +241,8 @@ export async function uploadFile(
 	let destroy: string | null = null;
 	if (destruct) {
 		destroy = parseDestruct(destruct).toISOString();
+		id = '💣' + id;
+		name = '💣' + name;
 	}
 	let storeData = {
 		name,
