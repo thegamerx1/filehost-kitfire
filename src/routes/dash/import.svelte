@@ -107,7 +107,7 @@
 		}
 	}
 
-	const MAX_RUNNING_UPLOADS = 16;
+	const MAX_RUNNING_UPLOADS = 8;
 	async function submit() {
 		if (!success) {
 			return;
@@ -118,7 +118,10 @@
 		$progress = 0;
 		let threads = 0;
 		let promiseList: Promise<void>[] = [];
-		for (let file of parsedData) {
+		let toUploadIds = parsedData.map((i) => i.data.id);
+		for (let id of toUploadIds) {
+			const file = parsedData.find((i) => i.data.id === id);
+			if (!file) continue;
 			if (uploadsFailed) return;
 			while (threads > MAX_RUNNING_UPLOADS) {
 				promiseList = promiseList.filter((p) => p.then);
@@ -130,27 +133,21 @@
 
 			threads++;
 			promiseList.push(
-				fetch('/api/import', {
-					method: 'POST',
-					body: form,
-					credentials: 'same-origin',
-					headers: {
-						Accept: 'application/json'
-					}
-				})
-					.then((res) => (res.status === 200 ? res.json() : { success: false, res }))
-					.then(async (res) => {
-						$progress = $progress + 1;
-						if (!res.success) {
-							errors.push(
-								res?.error ?? res?.statusText ?? res?.text ? await res.text() : 'Unkown error'
-							);
+				upload(form)
+					.then((error) => {
+						toUploadIds = toUploadIds.filter((i) => i !== id);
+						if (error) {
+							toUploadIds.push(id);
 						}
 					})
 					.catch((e) => {
-						errors.push(`Error uploading ${file.data.name}`);
-						errors.push(getErrorMessage(e));
-						uploadsFailed = true;
+						if (e.status?.match(/^5/)) {
+							return;
+						} else {
+							errors.push(`Error uploading ${file.data.name}`);
+							errors.push(getErrorMessage(e));
+							uploadsFailed = true;
+						}
 					})
 					.finally(() => {
 						threads = threads - 1;
@@ -162,6 +159,27 @@
 			finishedUploading = true;
 		}
 		running = false;
+	}
+
+	function upload(form: FormData) {
+		return fetch('/api/import', {
+			method: 'POST',
+			body: form,
+			credentials: 'same-origin',
+			headers: {
+				Accept: 'application/json'
+			}
+		})
+			.then((res) => (res.status === 200 ? res.json() : { success: false, res }))
+			.then(async (res) => {
+				$progress = $progress + 1;
+				if (!res.success) {
+					errors.push(
+						res?.error ?? res?.statusText ?? res?.text ? await res.text() : 'Unkown error'
+					);
+					return true;
+				}
+			});
 	}
 </script>
 
