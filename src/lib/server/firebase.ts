@@ -208,6 +208,9 @@ export async function getFile(id: string, deleted = false) {
 	}
 	let ref = file.docs[0].ref;
 	let validate = await FileValidate(file.docs[0].data());
+	if (validate.selfDestruct && validate.destruct && !getExpire(validate.id)) {
+		await setExpireFire({ id: validate.id, time: validate.destruct }, EXPIRES);
+	}
 	return { ref, doc: validate };
 }
 
