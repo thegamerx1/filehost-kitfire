@@ -12,6 +12,7 @@ app.get('/healthcheck', (req, res) => {
 // let SvelteKit handle everything else, including serving prerendered pages and static assets
 app.use(handler);
 
-app.listen(process.env.port || 3000, '0.0.0.0', () => {
-	console.log('listening on port ' + process.env.port || 3000);
+const PORT = process.env.PORT || process.env.port || 3000;
+app.listen(PORT, '0.0.0.0', () => {
+	console.log('listening on port ' + PORT);
 });
