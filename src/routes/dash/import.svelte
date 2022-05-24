@@ -177,10 +177,10 @@
 				if (res.status === 200) {
 					return (await res.json()) as ImportOutput;
 				} else if (res.status.toString().match(/^5/)) {
-					errors.push(`Failed to upload ${data.data.name} ${res.status} ${res.statusText}`);
 					throw ERROR_RETRY;
 				} else {
-					throw new Error(await res.text());
+					errors.push(`Failed to upload ${data.data.name} ${res.status} ${res.statusText}`);
+					throw new Error(res.statusText);
 				}
 			})
 			.then((res) => {
