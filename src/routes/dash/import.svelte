@@ -4,13 +4,18 @@
 	import { validate } from '$lib/models/Import';
 	import { getErrorMessage } from '$lib/utils/getError';
 	import { writable } from 'svelte/store';
+	import type { ImportOutput } from '../api/import';
+	import { tweened } from 'svelte/motion';
+	import { onMount } from 'svelte';
+	import { LoaderIcon } from 'svelte-feather-icons';
 
 	let errors: string[] = [];
 	let running = false;
 	let modalOpen = false;
-	let parsedData: { data: ImportFile; file: File }[] = [];
+	type parsed = { data: ImportFile; file: File };
+	let parsedData: parsed[] = [];
 	let progressMax = writable(0);
-	let progress = writable(0);
+	let progress = tweened(0, { duration: 0.1 });
 	let success = false;
 	let uploading = false;
 	let finishedUploading = false;
@@ -133,24 +138,20 @@
 
 			threads++;
 			promiseList.push(
-				upload(form)
-					.then((error) => {
+				upload(form, file)
+					.then((res) => {
 						toUploadIds = toUploadIds.filter((i) => i !== id);
-						if (error) {
-							toUploadIds.push(id);
-						}
 					})
 					.catch((e) => {
-						if (e.status?.match(/^5/)) {
+						if (e === ERROR_RETRY) {
 							return;
-						} else {
-							errors.push(`Error uploading ${file.data.name}`);
-							errors.push(getErrorMessage(e));
-							uploadsFailed = true;
+						} else if (e === ERROR_OK) {
+							errors;
 						}
 					})
 					.finally(() => {
 						threads = threads - 1;
+						$progress = parsedData.length - toUploadIds.length;
 					})
 			);
 		}
@@ -161,7 +162,9 @@
 		running = false;
 	}
 
-	function upload(form: FormData) {
+	const ERROR_RETRY = new Error('Retry');
+	const ERROR_OK = new Error('Expected error');
+	function upload(form: FormData, data: parsed) {
 		return fetch('/api/import', {
 			method: 'POST',
 			body: form,
@@ -170,17 +173,31 @@
 				Accept: 'application/json'
 			}
 		})
-			.then((res) => (res.status === 200 ? res.json() : { success: false, res }))
 			.then(async (res) => {
-				$progress = $progress + 1;
-				if (!res.success) {
-					errors.push(
-						res?.error ?? res?.statusText ?? res?.text ? await res.text() : 'Unkown error'
-					);
-					return true;
+				if (res.status === 200) {
+					return (await res.json()) as ImportOutput;
+				} else if (res.status.toString().match(/^5/)) {
+					errors.push(`Failed to upload ${data.data.name} ${res.status} ${res.statusText}`);
+					throw ERROR_RETRY;
+				} else {
+					throw new Error(await res.text());
 				}
+			})
+			.then((res) => {
+				if (!res.success && res.error) {
+					errors.push(res.error);
+					throw ERROR_OK;
+				}
+				return res;
 			});
 	}
+
+	onMount(() => {
+		return () => {
+			running = false;
+			uploadsFailed = true;
+		};
+	});
 </script>
 
 <input type="checkbox" id="my-modal-3" class="modal-toggle" bind:checked={modalOpen} />
@@ -190,17 +207,15 @@
 			class="btn btn-sm btn-circle absolute right-2 top-2"
 			on:click={() => (modalOpen = false)}>✕</button
 		>
-		<ul class="steps steps-vertical lg:steps-horizontal w-full">
+		<ul class="steps steps-vertical lg:steps-horizontal w-full lg:mb-3">
 			<li class="step step-primary">Check</li>
 			<li class="step" class:step-primary={$progressMax}>Validation</li>
 			<li class="step" class:step-primary={uploading}>Upload</li>
+			<li class="step" class:step-primary={finishedUploading || uploadsFailed}>Completion</li>
 		</ul>
-		{#if !success || (uploading && !finishedUploading && !uploadsFailed)}
-			<progress class="progress progress-primary w-full" value={$progress} max={$progressMax} />
-		{/if}
 		{#if running}
-			<div class="flex w-full justify-center">
-				<button class="btn btn-square loading" />
+			<div class="flex w-full justify-center my-6">
+				<LoaderIcon class="spin" />
 			</div>
 		{:else if success}
 			<h3 class="text-lg font-bold py-2">Files succesfully parsed</h3>
@@ -219,6 +234,16 @@
 				class="textarea textarea-error resize-none w-full h-72"
 				value={errors.join('\n')}
 			/>
+		{/if}
+		{#if !success || (uploading && !finishedUploading && !uploadsFailed)}
+			<div class="flex items-center">
+				<progress
+					class="progress h-6 rounded-sm progress-primary flex-1"
+					value={$progress}
+					max={$progressMax}
+				/>
+				<p class="mx-2 text-center">{(($progress / $progressMax) * 100).toFixed(2)}%</p>
+			</div>
 		{/if}
 	</div>
 </div>

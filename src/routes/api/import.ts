@@ -2,6 +2,7 @@ import type { RequestHandler } from '@sveltejs/kit';
 import { uploadImport } from '$lib/server/firebase';
 import { urlInCaseNoOrigin, SIZELIMIT } from '../../../env';
 import { validate } from '$lib/models/Import';
+import { getErrorMessage } from '$lib/utils/getError';
 
 function getIP(fileip: string, clientip: string) {
 	if (!fileip || fileip === '127.0.0.1' || fileip === '0.0.0.0') {
@@ -9,6 +10,8 @@ function getIP(fileip: string, clientip: string) {
 	}
 	return fileip;
 }
+
+export type ImportOutput = Awaited<ReturnType<typeof uploadImport>>;
 
 export const post: RequestHandler = async ({ request, clientAddress, locals }) => {
 	if (!locals.isFuckingGod) {
@@ -37,24 +40,20 @@ export const post: RequestHandler = async ({ request, clientAddress, locals }) =
 	}
 	let parsed = validate(JSON.parse(json));
 
-	let result: Awaited<ReturnType<typeof uploadImport>>;
+	let result: ImportOutput;
 	try {
 		result = await uploadImport(file, {
 			...parsed,
 			ip: getIP(parsed.ip, clientAddress)
 		});
 	} catch (e) {
-		let message = 'An error occurred while uploading the file';
-		if (typeof e === 'string') {
-			message = e.toUpperCase();
-		} else if (e instanceof Error) {
-			message = e.message;
-		}
+		let message = getErrorMessage(e);
 		console.error(e);
 		return {
 			status: 200,
-			success: false,
-			body: message
+			body: {
+				error: message
+			} as ImportOutput
 		};
 	}
 
