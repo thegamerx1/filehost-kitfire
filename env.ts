@@ -13,7 +13,7 @@ const maxViewsForSameIp = 5;
 // const publicExpire = 120;
 // const maxGlobalPublicSize = 50;
 const MINDESTROY = '5s';
-const MAXDESTROY = '1month'; // careful not to exceed max settimeout
+const MAXDESTROY = '1month';
 
 export {
 	PASSWORD,
