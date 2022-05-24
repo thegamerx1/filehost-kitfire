@@ -50,11 +50,11 @@
 
 	{#if data.success}
 		{#if data.isImage}
-			<meta property="og:image" content={data.host + '/i/' + data.name} />
+			<meta property="og:image" content={data.host + '/' + data.name + '?view=true'} />
 		{:else if data.isVideo}
-			<meta property="og:video" content={data.host + '/i/' + data.name} />
+			<meta property="og:video" content={data.host + '/' + data.name + '?view=true'} />
 		{:else if data.isAudio}
-			<meta property="og:audio" content={data.host + '/i/' + data.name} />
+			<meta property="og:audio" content={data.host + '/' + data.name + '?view=true'} />
 		{/if}
 		<meta property="og:url" content={data.host + '/' + data.name} />
 	{/if}
