@@ -1,8 +1,9 @@
 {
 	"extends": "./.svelte-kit/tsconfig.json",
+	"exclude": ["node_modules", "build", "src/handler.js"],
 	"compilerOptions": {
 		"allowJs": true,
-		"checkJs": false,
+		"checkJs": true,
 		"esModuleInterop": true,
 		"forceConsistentCasingInFileNames": true,
 		"lib": ["es2020", "DOM", "ES2021.Promise"],
