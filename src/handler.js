@@ -3,7 +3,7 @@ import { handler } from '../build/handler.js';
 import express from 'express';
 
 const app = express();
-
+app.set('trust proxy', true);
 // add a route that lives separately from the SvelteKit app
 app.get('/healthcheck', (req, res) => {
 	res.end('ok');
