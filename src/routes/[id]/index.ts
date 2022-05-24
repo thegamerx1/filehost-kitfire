@@ -1,9 +1,10 @@
-import { getFile } from '$lib/server/firebase';
+import { getFile, updateCounter } from '$lib/server/firebase';
 import type { RequestHandler } from '@sveltejs/kit';
 import pretty from 'pretty-bytes';
 import { createHmac } from 'crypto';
 import admin from 'firebase-admin';
 import { maxViewsForSameIp, SECRET } from '../../../env';
+import type { View } from '$lib/models/View';
 
 function hashWithSolt(what: string) {
 	return createHmac('sha256', SECRET).update(what).digest('base64');
@@ -99,11 +100,13 @@ export const get: RequestHandler = async ({ params, url, clientAddress, request 
 		}
 
 		if (views <= maxViewsForSameIp && userAgent && !usedUserAgent) {
-			let view = {
+			let view: View = {
 				ip,
 				time: new Date().toISOString(),
 				userAgent
 			};
+
+			await updateCounter({ uniqueview: true });
 
 			await ref.update({
 				views: admin.firestore.FieldValue.arrayUnion(view)

@@ -38,6 +38,7 @@ export const post: RequestHandler = async ({ request, clientAddress, locals }) =
 			body: `File is too large. Max size is ${SIZELIMIT}MB`
 		};
 	}
+
 	let parsed = validate(JSON.parse(json));
 
 	let result: ImportOutput;

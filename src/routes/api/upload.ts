@@ -24,7 +24,7 @@ export const post: RequestHandler = async ({ request, clientAddress }) => {
 
 	const user = await uploadTokenValid(data.get('secret') as string);
 	if (!user) {
-		await new Promise((resolve) => setTimeout(resolve, Math.floor(Math.random() * 100)));
+		await new Promise((resolve) => setTimeout(resolve, Math.floor(Math.random() * 1000)));
 		return {
 			status: 403,
 			body: 'Invalid secret'

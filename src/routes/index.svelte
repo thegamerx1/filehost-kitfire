@@ -1,25 +1,36 @@
+<script lang="ts">
+	import pretty from 'pretty-bytes';
+	import type { Counter } from '$lib/models/Counters';
+	import IndexPageCard from '$lib/components/IndexPageCard.svelte';
+	export let counters: Counter;
+</script>
+
 <svelte:head>
 	<title>Home</title>
 </svelte:head>
 
-<section>
-	<h1>
-		<div class="welcome">
-			<picture>
-				<source srcset="svelte-welcome.webp" type="image/webp" />
-				<img src="svelte-welcome.png" alt="Welcome" />
-			</picture>
+<div class="hero min-h-screen bg-base-200 bg-opacity-25">
+	<div class="hero-content text-center flex-col">
+		<div class="max-w-md">
+			<h1 class="text-5xl font-bold">Filehost</h1>
 		</div>
+		<div class="flex flex-row py-6 w-full flex-wrap justify-center">
+			<IndexPageCard title="Unique visits">{counters.uniqueviews}</IndexPageCard>
+			<IndexPageCard title="Uploads">{counters.uploads}</IndexPageCard>
+			<IndexPageCard title="Storage"
+				>{pretty(counters.uploadsize * 1000, { bits: false })}</IndexPageCard
+			>
+		</div>
+	</div>
+</div>
 
-		to your new<br />SvelteKit app
-	</h1>
-
+<div class="container">
 	<h2>
 		try editing <strong>src/routes/index.svelte</strong>
 	</h2>
-</section>
+</div>
 
-<style>
+<!-- <style>
 	section {
 		display: flex;
 		flex-direction: column;
@@ -46,4 +57,4 @@
 		top: 0;
 		display: block;
 	}
-</style>
+</style> -->

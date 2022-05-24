@@ -13,19 +13,26 @@ import {
 	onExpire,
 	expireSetError
 } from '$lib/cache/expires';
+import {
+	set as setCounter,
+	setAll as setFireCounter,
+	get as getCounter
+} from '$lib/cache/counters';
 
-import type { User } from '$lib/models/User';
+import type { View } from '$lib/models/View';
+import { validate as CounterValidate, type Counter } from '$lib/models/Counters';
 import * as userCache from '$lib/cache/users';
 import { validate as FileValidate } from '$lib/models/File';
-import { validate as UserValidate } from '$lib/models/User';
-import { validate as ImportValidate } from '$lib/models/Import';
+import { validate as UserValidate, type User } from '$lib/models/User';
 import type { ImportFile } from '$lib/models/Import';
+import { validate as ImportValidate } from '$lib/models/Import';
 import { validate as ExpireValidate, type Expire } from '$lib/models/Expire';
 import type { Bucket } from '@google-cloud/storage';
 
 var DB: admin.firestore.Firestore;
 var BUCKET: Bucket;
 var EXPIRES: admin.firestore.DocumentReference;
+var COUNTERS: admin.firestore.DocumentSnapshot;
 var FILES: admin.firestore.CollectionReference;
 var USERS: admin.firestore.CollectionReference;
 var ISREADY = false;
@@ -53,61 +60,76 @@ async function READY() {
 	DB = admin.firestore();
 	let promises: Promise<any>[] = [];
 	promises.push(
-		DB.collection('counter')
-			.doc('expires')
-			.get()
-			.then((doc) => {
-				if (doc.exists) {
-					let data = doc.data();
-					if (!data) {
-						throw new Error('Typescript thinks this can be empty lol?');
+		...[
+			DB.collection('counter')
+				.doc('counters')
+				.get()
+				.then((doc) => {
+					if (!doc.exists) {
+						return doc.ref.set(CounterValidate({}));
 					}
-					console.log(`Loading Expires (${data.expires.length})`);
-					for (let [index, item] of data.expires.entries()) {
-						let parsed: Expire;
-						try {
-							parsed = ExpireValidate(item);
-						} catch (e) {
-							console.error('Invalid expire on index: ' + index);
-							continue;
+				}),
+			DB.collection('counter')
+				.doc('expires')
+				.get()
+				.then((doc) => {
+					if (doc.exists) {
+						let data = doc.data();
+						if (!data) {
+							throw new Error('Typescript thinks this can be empty lol?');
 						}
-						setExpire(parsed.id, parsed);
-					}
-				} else {
-					DB.collection('counter').doc('expires').set({ expires: [] });
-				}
-				console.log(`Loaded Expires`);
-			})
-	);
-	promises.push(
-		DB.collection('users')
-			.get()
-			.then((snapshot) => {
-				userCache.setAll(
-					snapshot.docs
-						.map((doc) => {
+						console.log(`Loading Expires (${data.expires.length})`);
+						for (let [index, item] of data.expires.entries()) {
+							let parsed: Expire;
 							try {
-								return UserValidate(doc.data());
+								parsed = ExpireValidate(item);
 							} catch (e) {
-								return null;
+								console.error('Invalid expire on index: ' + index);
+								continue;
 							}
-						})
-						.filter((user): user is User => !!user)
-				);
-				console.log('Loaded users');
-			})
+							setExpire(parsed.id, parsed);
+						}
+					} else {
+						DB.collection('counter').doc('expires').set({ expires: [] });
+					}
+					console.log(`Loaded Expires`);
+				}),
+			DB.collection('users')
+				.get()
+				.then((snapshot) => {
+					userCache.setAll(
+						snapshot.docs
+							.map((doc) => {
+								try {
+									return UserValidate(doc.data());
+								} catch (e) {
+									return null;
+								}
+							})
+							.filter((user): user is User => !!user)
+					);
+					console.log('Loaded users');
+				})
+		]
 	);
-	Promise.allSettled(promises).then(() => {
+	Promise.allSettled(promises).then(async () => {
 		BUCKET = admin.storage().bucket(clientConfig.storageBucket);
 		EXPIRES = DB.collection('counter').doc('expires');
+		COUNTERS = await DB.collection('counter').doc('counters').get();
 		FILES = DB.collection('files');
 		USERS = DB.collection('users');
+
+		setFireCounter(COUNTERS);
+
 		console.log('All done firebase ready');
 		try {
 			onExpire(async (expire) => {
 				let file = await FILES.where('id', '==', expire.id).get();
 				if (file.empty) {
-					console.error(`${expire.id} deleted but expired?? this shouldnt happen`);
+					console.error(`${expire.id} deleted but expired?? this shouldnt happen on production`);
+					await EXPIRES.update({
+						expires: admin.firestore.FieldValue.arrayRemove(expire)
+					});
 					return true;
 				}
 				let data = file.docs[0].data();
@@ -141,6 +163,12 @@ async function READY() {
 	});
 }
 READY();
+
+export async function getCounters() {
+	return getCounter();
+}
+
+export { setCounter as updateCounter };
 
 export async function decodeToken(token: string): Promise<DecodedIdToken | null> {
 	if (!token || token === 'null' || token === 'undefined') return null;
@@ -207,7 +235,7 @@ export async function getFile(id: string, deleted = false) {
 		return null;
 	}
 	let ref = file.docs[0].ref;
-	let validate = await FileValidate(file.docs[0].data());
+	let validate = FileValidate(file.docs[0].data());
 	if (validate.selfDestruct && validate.destruct && !getExpire(validate.id)) {
 		await setExpireFire({ id: validate.id, time: validate.destruct }, EXPIRES);
 	}
@@ -231,7 +259,7 @@ export async function uploadFile(
 			.where('selfDestruct', '==', false)
 			.get();
 		if (!exists.empty) {
-			let data = await FileValidate(exists.docs[0].data());
+			let data = FileValidate(exists.docs[0].data());
 			return {
 				...data,
 				zws: ZWS.encode(data.id),
@@ -263,7 +291,8 @@ export async function uploadFile(
 		ext,
 		tries: {
 			database: tries
-		}
+		},
+		views: undefined
 	};
 	const { validated } = await upload(storeData, data, BUCKET);
 
@@ -279,7 +308,7 @@ export async function uploadImport(file: File, filedata: ImportFile) {
 			.where('selfDestruct', '==', false)
 			.get();
 		if (!exists.empty) {
-			let data = await FileValidate(exists.docs[0].data());
+			let data = FileValidate(exists.docs[0].data());
 			if (data.hash !== hash) {
 				return {
 					error: `File with different hash exists ${data.name}`
@@ -306,7 +335,8 @@ export async function uploadImport(file: File, filedata: ImportFile) {
 		hash,
 		ext,
 		tag: null,
-		tries: null
+		tries: null,
+		views: filedata.views
 	};
 	const { validated } = await upload(storeData, data, BUCKET);
 
@@ -323,7 +353,7 @@ async function upload(
 		time: string;
 		original: string | null | undefined;
 		mime: string;
-		language: string | undefined | null;
+		language: string | undefined;
 		destruct: string | null | undefined;
 		selfDestruct: boolean;
 		ip: string;
@@ -337,6 +367,7 @@ async function upload(
 			  }
 			| null
 			| undefined;
+		views: View[] | undefined;
 	},
 	file: Buffer,
 	bucket: Bucket
@@ -361,7 +392,13 @@ async function upload(
 		if (data.selfDestruct) {
 			await setExpireFire({ id: validated.id, time: data.destruct as string }, EXPIRES);
 		}
+		await setCounter({
+			sizeOnKBit: validated.bytes / 1000,
+			addupload: true,
+			views: validated.views.length
+		});
 	} catch (e) {
+		console.error(e);
 		try {
 			await BUCKET.file(fileName).delete();
 		} catch (err) {
