@@ -1,9 +1,11 @@
 import { handler } from '../build/handler.js';
 // @ts-ignore
 import express from 'express';
+import cloudflare from 'cloudflare-express';
 
 const app = express();
-app.set('trust proxy', true);
+app.set('trust proxy', 'loopback');
+app.use(cloudflare.restore());
 // add a route that lives separately from the SvelteKit app
 app.get('/healthcheck', (req, res) => {
 	res.end('ok');
