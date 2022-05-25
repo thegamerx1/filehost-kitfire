@@ -13,7 +13,12 @@ function getIP(fileip: string, clientip: string) {
 
 export type ImportOutput = Awaited<ReturnType<typeof uploadImport>>;
 
+var runningUploads = 0;
+const MAX_RUNNING_UPLOADS = 1;
 export const post: RequestHandler = async ({ request, clientAddress, locals }) => {
+	while (runningUploads > MAX_RUNNING_UPLOADS) {
+		await new Promise((res) => setTimeout(res, 100));
+	}
 	if (!locals.isFuckingGod) {
 		return {
 			status: 403,
@@ -39,15 +44,25 @@ export const post: RequestHandler = async ({ request, clientAddress, locals }) =
 		};
 	}
 
-	let parsed = validate(JSON.parse(json));
+	let parsed: ReturnType<typeof validate>;
 
+	try {
+		parsed = validate(JSON.parse(json));
+	} catch (e) {
+		return {
+			body: { error: getErrorMessage(e) } as ImportOutput
+		};
+	}
 	let result: ImportOutput;
 	try {
+		runningUploads++;
 		result = await uploadImport(file, {
 			...parsed,
 			ip: getIP(parsed.ip, clientAddress)
 		});
+		runningUploads--;
 	} catch (e) {
+		runningUploads--;
 		let message = getErrorMessage(e);
 		console.error(e);
 		return {

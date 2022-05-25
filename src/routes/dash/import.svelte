@@ -147,6 +147,8 @@
 							return;
 						} else if (e === ERROR_OK) {
 							errors;
+						} else {
+							uploadsFailed = true;
 						}
 					})
 					.finally(() => {
@@ -223,10 +225,10 @@
 				You can now upload them to the server, this may take a while please do not close this tab
 			</p>
 			<button class="btn btn-primary w-full" on:click={submit}> Upload </button>
-		{:else if finishedUploading}
-			<h3 class="text-lg font-bold py-2">Upload finished</h3>
 		{:else if uploadsFailed}
 			<h3 class="text-lg font-bold py-2">Uploads failed</h3>
+		{:else if finishedUploading}
+			<h3 class="text-lg font-bold py-2">Upload finished</h3>
 		{/if}
 		{#if errors.length > 0}
 			<textarea
