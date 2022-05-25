@@ -3,13 +3,9 @@ import { handler } from '../build/handler.js';
 import express from 'express';
 
 const app = express();
-app.set('trust proxy', 'loopback');
-// add a route that lives separately from the SvelteKit app
+
 app.get('/healthcheck', (req, res) => {
 	res.end('ok');
-});
-app.get('/test', (req, res) => {
-	res.end(req.rawHeaders.join('\n'));
 });
 
 // let SvelteKit handle everything else, including serving prerendered pages and static assets
