@@ -51,6 +51,7 @@
 	{#if data.success}
 		{#if data.isImage}
 			<meta property="og:image" content={data.host + '/' + data.name + '?view=true'} />
+			<meta name="twitter:card" content="summary_large_image">
 		{:else if data.isVideo}
 			<meta property="og:video" content={data.host + '/' + data.name + '?view=true'} />
 		{:else if data.isAudio}
