@@ -407,5 +407,6 @@ async function upload(
 		}
 		throw e;
 	}
+
 	return { ref, validated };
 }
