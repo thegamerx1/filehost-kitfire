@@ -60,7 +60,7 @@ async function saveToBucket(bucket: Bucket, buffer: Buffer, mime: string, ext?: 
 	while (true) {
 		++tries;
 		id = v4();
-		name = ext ? id + '.' + ext : id;
+		name = 'uploads/' + (ext ? id + '.' + ext : id);
 		let doc = await bucket.file(name).exists();
 		if (!doc[0]) break;
 	}
@@ -70,9 +70,10 @@ async function saveToBucket(bucket: Bucket, buffer: Buffer, mime: string, ext?: 
 		contentType: mime,
 		public: true,
 		metadata: {
-			'Cache-Control': 'public, max-age=3600',
+			'Cache-Control': 'public, max-age=1800',
 			'Content-Disposition': 'attachment'
-		}
+		},
+		resumable: false
 	});
 
 	return {
@@ -164,8 +165,8 @@ function hasher(data: Buffer) {
 	return hash.digest('hex');
 }
 
-// 120kb to bytes
-const MAX_SCRIPT_SIZE = 120 * 1024;
+// 12kb to bytes
+const MAX_SCRIPT_SIZE = 12 * 1024;
 function highlightTest(buffer: Buffer) {
 	let newBuf = buffer;
 	if (newBuf.length > MAX_SCRIPT_SIZE || !utf8validate(newBuf)) {

@@ -78,6 +78,10 @@ export const post: RequestHandler = async ({ request, clientAddress, locals }) =
 			result?.data?.name ?? ''
 		}`
 	);
+	let mem = process.memoryUsage();
+	for (let key in mem) {
+		console.log(`${key} ${Math.round((mem[key] / 1024 / 1024) * 100) / 100} MB`);
+	}
 
 	return {
 		status: 200,
