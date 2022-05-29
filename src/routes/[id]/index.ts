@@ -29,14 +29,16 @@ export const get: RequestHandler = async ({ params, url, clientAddress, request 
 		out = await getFile(id[1]);
 	} catch (error) {
 		return {
-			status: 500,
+			status: 200,
 			body: {
-				error:
-					error instanceof Error
-						? error.message
-						: typeof error === 'string'
-						? error
-						: 'Unknown error'
+				data: {
+					error:
+						error instanceof Error
+							? error.message
+							: typeof error === 'string'
+							? error
+							: 'Unknown error'
+				} as ResponseData
 			}
 		};
 	}
