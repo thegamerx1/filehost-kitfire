@@ -80,7 +80,7 @@ export const post: RequestHandler = async ({ request, clientAddress, locals }) =
 	);
 	let mem = process.memoryUsage();
 	for (let key in mem) {
-		console.log(`${key} ${Math.round((mem[key] / 1024 / 1024) * 100) / 100} MB`);
+		console.log(`${key} ${Math.round((mem[key] / 1024 ** 2) * 100) / 100} MB`);
 	}
 
 	return {

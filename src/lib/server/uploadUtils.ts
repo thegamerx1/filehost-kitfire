@@ -165,8 +165,8 @@ function hasher(data: Buffer) {
 	return hash.digest('hex');
 }
 
-// 12kb to bytes
-const MAX_SCRIPT_SIZE = 12 * 1024;
+// 120kb to bytes
+const MAX_SCRIPT_SIZE = 120 * 1024;
 function highlightTest(buffer: Buffer) {
 	let newBuf = buffer;
 	if (newBuf.length > MAX_SCRIPT_SIZE || !utf8validate(newBuf)) {
