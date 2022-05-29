@@ -5,6 +5,7 @@ import { createHmac } from 'crypto';
 import admin from 'firebase-admin';
 import { maxViewsForSameIp, SECRET } from '../../../env';
 import type { View } from '$lib/models/View';
+import { getErrorMessage } from '$lib/utils/getError';
 
 function hashWithSolt(what: string) {
 	return createHmac('sha256', SECRET).update(what).digest('base64');
@@ -32,12 +33,7 @@ export const get: RequestHandler = async ({ params, url, clientAddress, request 
 			status: 200,
 			body: {
 				data: {
-					error:
-						error instanceof Error
-							? error.message
-							: typeof error === 'string'
-							? error
-							: 'Unknown error'
+					error: getErrorMessage(error, true)
 				} as ResponseData
 			}
 		};

@@ -23,6 +23,11 @@ function toErrorWithMessage(maybeError: unknown): ErrorWithMessage {
 	}
 }
 
-export function getErrorMessage(error: unknown) {
-	return toErrorWithMessage(error).message;
+export function getErrorMessage(error: unknown, stack = false) {
+	let message = toErrorWithMessage(error).message;
+	let stacks: string | undefined;
+	if (error instanceof Error) {
+		stacks = error.stack;
+	}
+	return message + (stacks ? `\n\n${stacks}` : '');
 }
