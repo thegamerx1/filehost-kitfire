@@ -2,7 +2,7 @@
 	"name": "filehost-kitfire",
 	"version": "0.0.2",
 	"engines": {
-		"node": ">=16.1.0"
+		"node": "16.15.0"
 	},
 	"scripts": {
 		"start": "node src/handler.js",
