@@ -58,7 +58,6 @@ async function READY() {
 	}
 
 	DB = admin.firestore();
-	DB.settings({ ignoreUndefinedProperties: true });
 	let promises: Promise<any>[] = [];
 	promises.push(
 		...[
@@ -229,12 +228,9 @@ export async function createUser(name: string, description: string | null) {
 
 export async function getFile(id: string, deleted = false) {
 	await READY();
-	let ids: string[] = [id];
-	let zws = ZWS.decode(id);
-	if (zws && zws !== id) ids.push(zws);
-	console.log(ids);
-	let file = await FILES.where('id', 'in', ids).where('deleted', '==', deleted).get();
-	console.log(file);
+	let file = await FILES.where('id', 'in', [id, ZWS.decode(id)])
+		.where('deleted', '==', deleted)
+		.get();
 	if (file.empty) {
 		return null;
 	}
