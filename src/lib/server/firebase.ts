@@ -231,9 +231,10 @@ export async function getFile(id: string, deleted = false) {
 	await READY();
 	let ids: string[] = [id];
 	let zws = ZWS.decode(id);
-	if (zws) ids.push(zws);
+	if (zws && zws !== id) ids.push(zws);
 	console.log(ids);
 	let file = await FILES.where('id', 'in', ids).where('deleted', '==', deleted).get();
+	console.log(file);
 	if (file.empty) {
 		return null;
 	}
