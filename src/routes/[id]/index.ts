@@ -15,8 +15,10 @@ export const get: RequestHandler = async ({ params, url, clientAddress, request 
 	let error;
 	let out;
 	try {
+		console.log(params.id);
 		let id = params.id.match(/^(.+?)(\.\w+)?$/);
-		if (!id) {
+		console.log(id);
+		if (!id || !id[1]) {
 			return {
 				status: 404,
 				body: {
