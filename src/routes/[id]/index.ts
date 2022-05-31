@@ -35,7 +35,6 @@ export const get: RequestHandler = async ({ params, url, clientAddress, request 
 		if (zws !== id[1]) {
 			let regex = zws.match(URL_MATCHER) || [];
 			zws = regex[1] ?? '';
-			console.log(`/${zws}${url.search}`);
 			return {
 				status: 301,
 				headers: {
