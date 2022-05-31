@@ -165,6 +165,7 @@ async function READY() {
 READY();
 
 export async function getCounters() {
+	await READY();
 	return getCounter();
 }
 
