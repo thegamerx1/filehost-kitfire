@@ -6,16 +6,19 @@ import admin from 'firebase-admin';
 import { maxViewsForSameIp, SECRET } from '../../../env';
 import type { View } from '$lib/models/View';
 import { getErrorMessage } from '$lib/utils/getError';
+import { ZWS } from '$lib/server/uploadUtils';
 
 function hashWithSolt(what: string) {
 	return createHmac('sha256', SECRET).update(what).digest('base64');
 }
 
+const URL_MATCHER = /^(.+?)(\.\w+)?$/;
+
 export const get: RequestHandler = async ({ params, url, clientAddress, request }) => {
 	let out;
 	let hadId = false;
 	try {
-		let id = params.id.match(/^(.+?)(\.\w+)?$/);
+		let id = params.id.match(URL_MATCHER);
 		if (!id) {
 			return {
 				status: 404,
@@ -28,6 +31,18 @@ export const get: RequestHandler = async ({ params, url, clientAddress, request 
 			};
 		}
 		hadId = !!id[2];
+		let zws = ZWS.decode(id[1]);
+		if (zws !== id[1]) {
+			let regex = zws.match(URL_MATCHER) || [];
+			zws = regex[1] ?? '';
+			console.log(`/${zws}${url.search}`);
+			return {
+				status: 301,
+				headers: {
+					Location: `/${zws}${url.search}`
+				}
+			};
+		}
 		out = await getFile(id[1]);
 	} catch (error) {
 		return {

@@ -229,9 +229,7 @@ export async function createUser(name: string, description: string | null) {
 
 export async function getFile(id: string, deleted = false) {
 	await READY();
-	let file = await FILES.where('id', 'in', [id, ZWS.decode(id)])
-		.where('deleted', '==', deleted)
-		.get();
+	let file = await FILES.where('id', '==', id).where('deleted', '==', deleted).get();
 	if (file.empty) {
 		return null;
 	}
