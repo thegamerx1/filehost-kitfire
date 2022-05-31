@@ -13,6 +13,7 @@ declare global {
 		linesofcode: number;
 		views: number;
 		success: true;
+		hadId: boolean;
 	};
 	type Failure = {
 		success: false;

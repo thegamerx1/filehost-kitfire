@@ -9,7 +9,6 @@ import { FIREBASE_CLIENT_CONFIG as firebaseClientConfig } from '$lib/server/cons
 interface Session {
 	firebaseClientConfig: typeof firebaseClientConfig;
 	userAgent: string | null;
-	isView: boolean;
 	user?: {
 		name: string;
 		email?: string;
@@ -25,7 +24,6 @@ export async function getSession(event: RequestEvent): Promise<Session> {
 
 	const always = {
 		userAgent: event.request.headers.get('user-agent'),
-		isView: event.request.url.includes('?view='),
 		firebaseClientConfig,
 		dark: cookies.dark ? cookies.dark === 'true' : undefined,
 		user: undefined,

@@ -2,7 +2,7 @@
 	import type { Load } from '@sveltejs/kit';
 
 	export const load: Load = async ({ url, props }) => {
-		if (url.searchParams.has('view') && props.data.success) {
+		if (props.data.success && (url.searchParams.has('view') || props.data.hadId)) {
 			return {
 				status: 302,
 				redirect: props.data.url
@@ -51,7 +51,7 @@
 	{#if data.success}
 		{#if data.isImage}
 			<meta property="og:image" content={data.host + '/' + data.name + '?view=true'} />
-			<meta name="twitter:card" content="summary_large_image">
+			<meta name="twitter:card" content="summary_large_image" />
 		{:else if data.isVideo}
 			<meta property="og:video" content={data.host + '/' + data.name + '?view=true'} />
 		{:else if data.isAudio}

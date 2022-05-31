@@ -13,6 +13,7 @@ function hashWithSolt(what: string) {
 
 export const get: RequestHandler = async ({ params, url, clientAddress, request }) => {
 	let out;
+	let hadId = false;
 	try {
 		let id = params.id.match(/^(.+?)(\.\w+)?$/);
 		if (!id) {
@@ -26,6 +27,7 @@ export const get: RequestHandler = async ({ params, url, clientAddress, request 
 				}
 			};
 		}
+		hadId = !!id[2];
 		out = await getFile(id[1]);
 	} catch (error) {
 		return {
@@ -123,7 +125,8 @@ export const get: RequestHandler = async ({ params, url, clientAddress, request 
 		url: doc.file.url,
 		host: url.origin,
 		language: doc.language,
-		linesofcode: doc.linesofcode
+		linesofcode: doc.linesofcode,
+		hadId
 	};
 
 	return {
